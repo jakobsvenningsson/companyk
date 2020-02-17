@@ -10,7 +10,6 @@ init(_Args) ->
     {ok, {}, 0}.
 
 handle_info(timeout, State) ->
-    io:fwrite("Timeout Triggered!~n"),
     {noreply, State}.
 
 handle_call(_, _From, State) ->

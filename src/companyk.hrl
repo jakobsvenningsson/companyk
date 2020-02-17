@@ -1,0 +1,1 @@
+-define(JWT_KEY_PATH, "priv/jwt.key").
