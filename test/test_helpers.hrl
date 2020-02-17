@@ -1,0 +1,8 @@
+-define(ENDPOINT, "http://localhost:8080").
+-define(USER1, "{\"user\":\"1\",\"password\":\"123\"}").
+-define(USER2, "{\"user\":\"2\",\"password\":\"123\"}").
+-define(CONTENT1, "{\"receiver_id\":\"2\",\"type\":\"text\",\"is_payable\":false,\"data\":\"123456789\"}").
+-define(CONTENT2, "{\"receiver_id\":\"2\",\"type\":\"text\",\"is_payable\":true,\"data\":\"987654321\"}").
+-define(CONTENT3, "{\"receiver_id\":\"1\",\"type\":\"text\",\"is_payable\":true,\"data\":\"987654321\"}").
+-define(AUTH_H(Token), {"Authorization", "Bearer " ++ Token}).
+-define(setup(F), {setup, fun start/0, fun stop/1, F}).
