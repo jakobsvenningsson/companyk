@@ -63,14 +63,18 @@ Usage Instructions
 Hosting Proposal
 -----
 
-CLoud...
+I would host the application using a cloud provider such as AWS. Deploying applications in the cloud is prefered since it is flexible (it's easy to increase or decrease availible resources on demand) and cost-efficient (you only pay for the resources you use). I would run my application inside of a docker container since AWS have features which makes it possible to easily deploy containerized applications.
 
 User Requirements
 -----
 
-1. Can’t lose data
+1. Can’t lose data.
+   I have choosen to use erlangs built in database <b>mnesia</b> for persistant storage. 
 
-2. Content should be available for the users to read within 1 hour after it was sent
+2. Content should be available for the users to read within 1 hour after it was sent.
+   
+   Content is availible for the consumer immediately after the producer have finished uploading the content to the server.  
 
 3. Sender wants to send data in batches so peaks of 50 requests per second should be
 expected.
+My implementation can handle multiple request concurrently. My implementation uses 10 acceptor processes, i.e. 10 processes with the sole job of accepting incoming connections and spawning processes which will handle the incoming requests. This should be enough to handle 50 requests per second. However, the number of requests that can be handled concurrently is limited by the server's availible computing resources. For instance, if each incoming request takes a very long time; then 50 requests per second might not be possible.   
