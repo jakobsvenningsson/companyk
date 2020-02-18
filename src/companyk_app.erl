@@ -16,6 +16,7 @@ start(_StartType, _StartArgs) ->
     Dispatch = cowboy_router:compile([
 		{'_', [
                {"/content/[:sender_id]", content_h, #{}},
+               {"/content/user/[:sender_id]", content_h, #{}},
                {"/register", register_h, #{}},
                {"/pay/:id", payment_h, #{}},
                {"/login", login_h, #{}}

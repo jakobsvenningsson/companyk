@@ -12,7 +12,7 @@ reply(#{method := <<"POST">>} = Req, #{user := ID}) ->
     ContentID = cowboy_req:binding(id, Req),
     case content_repository:mark_as_paid(ContentID, ID) of 
         {ok, Content} -> 
-            Proplist = lists:zip(record_info(fields, content), tl(tuple_to_list(Content))),
+            Proplist = lists:zip(record_info(fields, content_meta), tl(tuple_to_list(Content))),
             JSON = jsx:encode(Proplist),
             cowboy_req:reply(200, #{
                 <<"Content-Type">> => <<"application/json">>

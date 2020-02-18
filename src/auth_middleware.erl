@@ -34,6 +34,7 @@ authenticate(JWT, Req0, Env0 = #{handler_opts := Opts}) ->
     case Res of 
         {ok, #{ id := ID }} ->
             Env = Env0#{handler_opts := Opts#{user => ID}},
+            io:format("SUCCESSSFULL ~p~n", [ID]),
             {ok, Req0, Env};
         {error, _} -> 
             Req = cowboy_req:reply(401,

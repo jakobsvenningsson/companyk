@@ -31,19 +31,19 @@ stop({_, _}) ->
 %% Tests
 
 access_protected_content_without_auth_header({_Pid, {_Token1, _Token2}}) -> 
-    {ok, {{_, Status, _}, _, _Body}} = test_utils:http_request(get, {?ENDPOINT ++ "/content/123", []}),
+    {ok, {{_, Status, _}, _, _Body}} = test_utils:http_request(get, {?ENDPOINT ++ "/content/user/123", []}),
     [
         ?_assertEqual(401, Status)
     ].
 
 access_protected_content_with_invalid_auth_token({_Pid, {_Token1, _Token2}}) -> 
-    {ok, {{_, Status, _}, _, _Body}} = test_utils:http_request(get, {?ENDPOINT ++ "/content/123", [?AUTH_H("invalid_token")]}),
+    {ok, {{_, Status, _}, _, _Body}} = test_utils:http_request(get, {?ENDPOINT ++ "/content/user/123", [?AUTH_H("invalid_token")]}),
     [
         ?_assertEqual(401, Status)
     ].
 
 access_content_path_with_valid_token({_Pid, {Token1, _Token2}}) ->
-    {ok, {{_, Status, _}, _, _}} = test_utils:http_request(get, {?ENDPOINT ++ "/content/123", [?AUTH_H(Token1)]}),
+    {ok, {{_, Status, _}, _, _}} = test_utils:http_request(get, {?ENDPOINT ++ "/content/user/123", [?AUTH_H(Token1)]}),
     [
         ?_assertEqual(200, Status)
     ].

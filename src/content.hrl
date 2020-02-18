@@ -1,10 +1,15 @@
--record(content, {
+-record(content_meta, {
     id, 
     sender_id,
     receiver_id,
-    data,
     type,
     is_payable,
-    paid
+    paid,
+    uploaded
+}).
+
+-record(content, {
+    id, 
+    data
 }).
 

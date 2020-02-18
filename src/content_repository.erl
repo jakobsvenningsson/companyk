@@ -1,6 +1,6 @@
 -module(content_repository).
 
--export([init_db/1, get_content/2, insert_content/1, mark_as_paid/2]).
+-export([init_db/1, get_content_metadata/2, get_content/2, insert_metadata/1, insert_content/2, mark_as_paid/2]).
 
 -include("content.hrl").
 
@@ -9,65 +9,65 @@
 init_db(Env) ->
     mnesia:create_schema([node()]),
     application:start(mnesia),
-    % Init content table
-    try
-        mnesia:table_info(content, all)
-    catch 
-        exit: _ ->
-            AttrContentDB = [{attributes, record_info(fields, content)}, {index, [#content.sender_id]}],
-            OptsContentDB = case Env of 
-                test -> AttrContentDB;
-                prod -> [{disc_copies, [node()]} | AttrContentDB]
-            end,
-            {atomic, ok} = mnesia:create_table(content, OptsContentDB)
-    end,
-    % Init id counter table
-    try 
-        mnesia:table_info(content_ids, all)
-    catch 
-        exit: _ ->
-            AttrIdDB = [{attributes, record_info(fields, content_ids)}],
-            OptsIdDB = case Env of 
-                test -> AttrIdDB;
-                prod -> [{disc_copies, [node()]} | AttrIdDB]
-            end,
-            {atomic, ok} = mnesia:create_table(content_ids, OptsIdDB),
-            T = fun() ->
-                mnesia:write(content_ids, #content_ids{table_name = content_id,
-                                                              last_id = 0})
-            end,
-            mnesia:transaction(T)
-    end.
+    
+    AttrContentMetaDB = [{attributes, record_info(fields, content_meta)}, {index, [#content_meta.sender_id]}],
+    create_table(content_meta, AttrContentMetaDB, Env), 
+    create_table(content, [{attributes, record_info(fields, content)}], Env), 
+    create_table(content_ids, [{attributes, record_info(fields, content_ids)}], Env).
 
-
-insert_content(ContentProps) ->
+insert_metadata(ContentProps) ->
     ContentRecord = proplist_to_record(ContentProps),
     T = fun() ->
         mnesia:write(ContentRecord)            
     end, 
     {atomic, ok} = mnesia:transaction(T),
-    NewContentProps = [{<<"id">>, ContentRecord#content.id},
-                       {<<"paid">>, ContentRecord#content.paid} | ContentProps],
+    NewContentProps = [{<<"id">>, ContentRecord#content_meta.id},
+                       {<<"uploaded">>, ContentRecord#content_meta.uploaded},
+                       {<<"paid">>, ContentRecord#content_meta.paid} | ContentProps],
     {ok, NewContentProps}.
 
-get_content(SId, RId) ->
+insert_content(Bin, CId) ->
+    Content = #content{id = binary_to_integer(CId), data = Bin},
+    T = fun() ->
+        case mnesia:read(content_meta, Content#content.id) of 
+            [Meta] -> 
+                mnesia:write(Meta#content_meta{uploaded = true}),
+                mnesia:write(Content);
+            [] -> not_exist
+        end
+    end, 
+    {atomic, Res} = mnesia:transaction(T),
+    Res.
+
+get_content_metadata(SId, RId) ->
     T = fun() ->      
-        mnesia:index_match_object({content, '_', SId, RId, '_', '_', '_', '_'}, 
-                                  #content.sender_id)
+        mnesia:index_match_object({content_meta, '_', SId, RId, '_', '_', '_', '_'}, 
+                                  #content_meta.sender_id)
     end, 
     {atomic, Contents} = mnesia:transaction(T), 
-    F = fun(X, Y) -> {X#content.id} < {Y#content.id} end,
+    F = fun(X, Y) -> {X#content_meta.id} < {Y#content_meta.id} end,
     SortedContents = lists:sort(F, Contents),
     lists:map(fun(Content) ->
-        lists:zip(record_info(fields, content), tl(tuple_to_list(Content))) end, SortedContents).
+        lists:zip(record_info(fields, content_meta), tl(tuple_to_list(Content))) end, SortedContents).
+
+get_content(CId, _User) ->
+    T = fun() ->
+        case mnesia:read(content, binary_to_integer(CId)) of 
+            [#content{data = Data}] -> 
+                {ok, Data};
+            [] -> not_exist
+        end
+    end, 
+    {atomic, Res} = mnesia:transaction(T),
+    Res.
 
 mark_as_paid(ContentID, UserID) ->
     T = fun() ->
-        case mnesia:read(content, binary_to_integer(ContentID)) of 
-            [Content = #content{ is_payable = true, receiver_id = UserID}] ->
-                UpdatedContent = Content#content{ paid = true },
+        case mnesia:read(content_meta, binary_to_integer(ContentID)) of 
+            [Content = #content_meta{ is_payable = true, receiver_id = UserID}] ->
+                UpdatedContent = Content#content_meta{ paid = true },
                 {mnesia:write(UpdatedContent), UpdatedContent};
-            [#content{ is_payable = false, receiver_id = UserID}] ->
+            [#content_meta{ is_payable = false, receiver_id = UserID}] ->
                 not_payable;
             [] -> 
                 content_does_not_exist;
@@ -81,9 +81,20 @@ mark_as_paid(ContentID, UserID) ->
 
 proplist_to_record(Props) ->
     Index = mnesia:dirty_update_counter(content_ids, last_id, 1),
-    #content{id = Index,
+    #content_meta{id = Index,
              sender_id = proplists:get_value(<<"sender_id">>, Props),
              receiver_id = proplists:get_value(<<"receiver_id">>, Props), 
-             data = proplists:get_value(<<"data">>, Props),
              type = proplists:get_value(<<"type">>, Props),
-             is_payable = proplists:get_value(<<"is_payable">>, Props), paid = false}.
+             is_payable = proplists:get_value(<<"is_payable">>, Props), paid = false, uploaded = false}.
+
+create_table(Name, Attrs, Env) ->
+    try
+        mnesia:table_info(Name, all)
+    catch 
+        exit: _ ->
+            Opts = case Env of 
+                test -> Attrs;
+                prod -> [{disc_copies, [node()]} | Attrs]
+            end,
+            {atomic, ok} = mnesia:create_table(Name, Opts)
+    end.
