@@ -52,7 +52,7 @@ Usage Instructions
         localhost:8080/content/user/:user_id
         2> curl -X GET \
         -H 'Authorization: Bearer <<YOUR_API_TOKEN>>' \
-        localhost:8080/content/content/:content_id
+        localhost:8080/content/:content_id
 
 4. <b>Pay Content</b>. The query will mark the content associated with :content_id as paid, given that the receiver of the content is the user associated with the used API token, i.e. users can only pay for content destined for themselves. 
 
