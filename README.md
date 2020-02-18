@@ -69,12 +69,10 @@ User Requirements
 -----
 
 1. <b>Can’t lose data</b>.
-   
-   I have choosen to use erlang's built in database <b>mnesia</b> for persistant storage. My main reason being that it fulfils the needs for the given application, it has built in support for distribution and convenient to use. However, it is possible that there are other options that would have been more suitible for the given task. Currently, my application only has support to run on a single node, i.e. if the harddrive of that node would fail then the data would be lost. However, it would be possible to add support for multiple nodes without too much effort due to erlang's built in support for distribution and mnesia. Using multiple nodes and multiple replicas of the database would make it possible to create better resilience towards harddisk failures and improve availibility. Additionally, using multiple nodes would require some changes to the hosting architecture since multiple instances of the server would be running with different addresses. Clients should not talk to any server directly when using multiple instances of the server, instead they should talk to a load balancer which distributes the incoming requests to different servers. This is possible using AWS.</p>
+I have choosen to use erlang's built in database <b>mnesia</b> for persistant storage. My main reason being that it fulfils the needs for the given application, it has built in support for distribution and convenient to use. However, it is possible that there are other options that would have been more suitible for the given task. Currently, my application only has support to run on a single node, i.e. if the harddrive of that node would fail then the data would be lost. However, it would be possible to add support for multiple nodes without too much effort due to erlang's built in support for distribution and mnesia. Using multiple nodes and multiple replicas of the database would make it possible to create better resilience towards harddisk failures and improve availibility. Additionally, using multiple nodes would require some changes to the hosting architecture since multiple instances of the server would be running with different addresses. Clients should not talk to any server directly when using multiple instances of the server, instead they should talk to a load balancer which distributes the incoming requests to different servers. This is possible using AWS.
 
 2. <b>Content should be available for the users to read within 1 hour after it was sent.</b>
-   
-   Content is availible for the consumer immediately after the producer have finished uploading the content to the server.  
+Content is availible for the consumer immediately after the producer have finished uploading the content to the server.  
 
 3. <b>Sender wants to send data in batches so peaks of 50 requests per second should be
 expected.</b>
