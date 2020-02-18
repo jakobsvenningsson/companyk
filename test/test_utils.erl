@@ -5,7 +5,6 @@
 -export([http_request/2, register_and_login_user/1, clear_tables/0]).
 
 http_request(post, {URL, H, B, CT}) ->
-    io:format("BINARY~n"),
     httpc:request(post, {URL, H,CT, B}, [], [{body_format, binary}]);
 http_request(post, {URL, H, B}) ->
     httpc:request(post, {URL, H,"application/json", B}, [], [{body_format, binary}]);

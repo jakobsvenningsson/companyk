@@ -7,7 +7,6 @@ init(Req0, State) ->
 	{ok, Req, State}.
 
 reply(#{method := <<"POST">>, json := Content} = Req, #{user := ID}) ->
-    io:format("ID ~p~n", [ID]),
     NewContent = [{<<"sender_id">>, <<ID/binary>>} | Content],
     {ok, InsertedContent} = content_repository:insert_metadata(NewContent),
     Body = jsx:encode(InsertedContent),
@@ -33,7 +32,6 @@ reply(#{method := <<"POST">>, has_body := false} = Req, _State) ->
     reply:json(400, <<"Request has no body.">>, Req);
 
 reply(#{method := <<"GET">>, path := <<"/content/user", _/binary>>} = Req, #{user := ID}) ->
-    io:format("CONTENT FROM USER~n"),
     SId = cowboy_req:binding(sender_id, Req),
     Content = content_repository:get_content_metadata(SId, ID),
     Body = jsx:encode(Content),
