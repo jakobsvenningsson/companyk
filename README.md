@@ -63,18 +63,18 @@ Usage Instructions
 Hosting Proposal
 -----
 
-I would host the application using a cloud provider such as AWS. Deploying applications in the cloud is prefered since it is flexible (it's easy to increase or decrease availible resources on demand) and cost-efficient (you only pay for the resources you use). I would run my application inside of a docker container since AWS have features which makes it possible to easily deploy containerized applications.
+I would host the application using a cloud provider such as AWS. Deploying applications in the cloud is prefered since it is flexible (it's easy to increase or decrease availible resources on demand) and cost-efficient (you only pay for the resources you use). I would run my application inside of a docker container since AWS have features which makes it possible to easily deploy containerized applications. Using containers also have other advantages such as it makes it easier to handle and control the environnment which the application will run and you can have one environment for both production and development.
 
 User Requirements
 -----
 
-1. Can’t lose data.
-   I have choosen to use erlangs built in database <b>mnesia</b> for persistant storage. 
+1. <b>Can’t lose data</b>.
+   I have choosen to use erlang's built in database <b>mnesia</b> for persistant storage. My main reason being that it fulfilled the needs for the given application and convenient to use. However, it is possible that there are other options that would have been more suitible for the given task. Currently, my application only runs on single node, i.e. if the harddrive of that node would fail then the data would be lost. Mnesia got built in support for having multiple replicas of its content on multiple nodes which would make it possible to create resilience towards harddisk failures. Using multiple nodes would require some changes to the hosting architecture since multiple copies of the server would be running with different addresses. It would be neccesary to add a loadbalancer that all clients would talk to and then the load balancer would redirect the requests to the different instances of the server. This is possible using AWS.
 
-2. Content should be available for the users to read within 1 hour after it was sent.
+2. <b>Content should be available for the users to read within 1 hour after it was sent.</b>
    
    Content is availible for the consumer immediately after the producer have finished uploading the content to the server.  
 
-3. Sender wants to send data in batches so peaks of 50 requests per second should be
-expected.
-My implementation can handle multiple request concurrently. My implementation uses 10 acceptor processes, i.e. 10 processes with the sole job of accepting incoming connections and spawning processes which will handle the incoming requests. This should be enough to handle 50 requests per second. However, the number of requests that can be handled concurrently is limited by the server's availible computing resources. For instance, if each incoming request takes a very long time; then 50 requests per second might not be possible.   
+3. <b>Sender wants to send data in batches so peaks of 50 requests per second should be
+expected.</b>
+My implementation can handle multiple request concurrently. My implementation uses 10 acceptor processes, i.e. 10 processes with the sole job of accepting incoming connections and spawning processes which will handle the incoming requests. This should be enough to handle 50 requests per second (given that the requests are not very heavy). However, the number of requests that can be handled concurrently is also limited by the server's availible computing resources and the resources required for each request. For instance, if each incoming request takes a very long time; then 50 requests per second might not be possible. This could possibly happen with my implementation if there are 50 concurrent file upload equests which all contain 100MB of data. However, this problem could be mitigated by using a seperate server for file uploads. This is possible since uploading content is a 2-step process and it is possible to store the content and the metadata on different servers. To reduce the load on the servers which are running my application, an option would be to outsource the hosting of the content to a third party provider and only store the metadata. However, this could be a problem if the content is sensitive and the third part is not trusted.
